@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
@@ -20,7 +21,7 @@ import java.util.stream.StreamSupport;
 /**
  * Created by anders on 14/04/2016.
  */
-public class GameScreen extends ScreenAdapter {
+public final class GameScreen extends ScreenAdapter {
 	private static final float MOVE_TIME = 0.5F;
 	private static final int GRID_CELL = 32;
 	private  Movement snakeMovement;
@@ -36,6 +37,7 @@ public class GameScreen extends ScreenAdapter {
 	private Array<BodyPart> bodyParts = new Array<BodyPart>();
 	private ShapeRenderer shapeRenderer;
 
+
 	@Override
 	public void show() {
 		batch = new SpriteBatch();
@@ -43,7 +45,7 @@ public class GameScreen extends ScreenAdapter {
 		snakeBody = new Texture(Gdx.files.internal("snakebody.png"));
 		apple = new Texture(Gdx.files.internal("apple.png"));
 		shapeRenderer = new ShapeRenderer();
-		this.snakeMovement = new SnakeMovement();
+		this.snakeMovement = new SnakeMovement(Gdx.graphics);
 	}
 
 	@Override
