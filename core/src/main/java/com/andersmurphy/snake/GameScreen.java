@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 
@@ -14,29 +15,17 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by anders on 14/04/2016.
  */
 public class GameScreen extends ScreenAdapter {
 	private static final float MOVE_TIME = 0.5F;
-	private static final int SNAKE_MOVEMENT = 32;
-
-	private static final Map<String, Function<Point, Point>> movement = new HashMap<>();
-
-	static {
-		movement.put(Directions.UP,
-				point -> point.y >= Gdx.graphics.getHeight() ? new Point(point.x, 0) : new Point(point.x, point.y + SNAKE_MOVEMENT));
-		movement.put(Directions.DOWN,
-				point -> point.y <= 0 ? new Point(point.x, Gdx.graphics.getHeight()) : new Point(point.x, point.y - SNAKE_MOVEMENT));
-		movement.put(Directions.RIGHT,
-				point -> point.x >= Gdx.graphics.getWidth() ? new Point(0, point.y) : new Point(point.x + SNAKE_MOVEMENT, point.y));
-		movement.put(Directions.LEFT,
-				point -> point.x <= 0 ? new Point(Gdx.graphics.getWidth(), point.y) : new Point(point.x - SNAKE_MOVEMENT, point.y));
-	}
-
+	private static final int GRID_CELL = 32;
+	private  Movement snakeMovement;
 	private Point snakePosition = new Point(0, 0);
-	private String snakeDirection = Directions.RIGHT;
+	private int snakeDirection = Input.Keys.RIGHT;
 	private float timer = MOVE_TIME;
 	private Batch batch;
 	private Texture snakeHead;
@@ -44,7 +33,8 @@ public class GameScreen extends ScreenAdapter {
 	private Texture apple;
 	private boolean isAppleAvailable = false;
 	private Point applePosition = new Point(0, 0);
-	private Array<BodyPart> bodyParts = new Array<>();
+	private Array<BodyPart> bodyParts = new Array<BodyPart>();
+	private ShapeRenderer shapeRenderer;
 
 	@Override
 	public void show() {
@@ -52,6 +42,8 @@ public class GameScreen extends ScreenAdapter {
 		snakeHead = new Texture(Gdx.files.internal("snakehead.png"));
 		snakeBody = new Texture(Gdx.files.internal("snakebody.png"));
 		apple = new Texture(Gdx.files.internal("apple.png"));
+		shapeRenderer = new ShapeRenderer();
+		this.snakeMovement = new SnakeMovement();
 	}
 
 	@Override
@@ -61,7 +53,7 @@ public class GameScreen extends ScreenAdapter {
 		if (timer <= 0) {
 			timer = MOVE_TIME;
 			Point snakesOldPosition = snakePosition;
-			snakePosition = movement.get(snakeDirection).apply(snakePosition);
+			snakePosition = snakeMovement.getMovementFunctionFor(snakeDirection).apply(snakePosition);
 			updateBodyPartsPosition(snakesOldPosition);
 			if (isAppleAvailable && snakePosition.equals(applePosition)) {
 				bodyParts.insert(0, new BodyPart(snakeBody, snakePosition));
@@ -76,11 +68,11 @@ public class GameScreen extends ScreenAdapter {
 	private void draw() {
 		batch.begin();
 		batch.draw(snakeHead, snakePosition.x, snakePosition.y);
-		for (BodyPart bodyPart : bodyParts) {
-			if (!snakePosition.equals(bodyPart.bodyPartPosition)) {
-				batch.draw(bodyPart.texture, bodyPart.bodyPartPosition.x, bodyPart.bodyPartPosition.y);
-			}
-		}
+
+		StreamSupport.stream(bodyParts.spliterator(), false)
+				.filter(bodyPart -> !snakePosition.equals(bodyPart.bodyPartPosition))
+				.forEach(bodyPart -> batch.draw(bodyPart.texture, bodyPart.bodyPartPosition.x, bodyPart.bodyPartPosition.y));
+
 		if (isAppleAvailable) {
 			batch.draw(apple, applePosition.x, applePosition.y);
 		}
@@ -95,8 +87,8 @@ public class GameScreen extends ScreenAdapter {
 	private void checkAndPlaceApple() {
 		if (!isAppleAvailable) {
 			do {
-				applePosition.x = MathUtils.random(Gdx.graphics.getWidth() / SNAKE_MOVEMENT - 1) * SNAKE_MOVEMENT;
-				applePosition.y = MathUtils.random(Gdx.graphics.getHeight() / SNAKE_MOVEMENT - 1) * SNAKE_MOVEMENT;
+				applePosition.x = MathUtils.random(Gdx.graphics.getWidth() / GRID_CELL - 1) * GRID_CELL;
+				applePosition.y = MathUtils.random(Gdx.graphics.getHeight() / GRID_CELL - 1) * GRID_CELL;
 				isAppleAvailable = true;
 			} while (snakePosition.equals(applePosition));
 		}
@@ -116,10 +108,20 @@ public class GameScreen extends ScreenAdapter {
 		boolean uPressed = Gdx.input.isKeyPressed(Input.Keys.UP);
 		boolean dPressed = Gdx.input.isKeyPressed(Input.Keys.DOWN);
 
-		if (lPressed) snakeDirection = Directions.LEFT;
-		if (rPressed) snakeDirection = Directions.RIGHT;
-		if (uPressed) snakeDirection = Directions.UP;
-		if (dPressed) snakeDirection = Directions.DOWN;
+		if (lPressed) snakeDirection = Input.Keys.LEFT;
+		if (rPressed) snakeDirection = Input.Keys.RIGHT;
+		if (uPressed) snakeDirection = Input.Keys.UP;
+		if (dPressed) snakeDirection = Input.Keys.DOWN;
+	}
+
+	private void drawGrid() {
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+		for (int x = 0; x < Gdx.graphics.getWidth(); x += GRID_CELL) {
+			for (int y = 0; y < Gdx.graphics.getHeight(); y += GRID_CELL) {
+				shapeRenderer.rect(x, y, GRID_CELL, GRID_CELL);
+			}
+		}
+		shapeRenderer.end();
 	}
 
 }
