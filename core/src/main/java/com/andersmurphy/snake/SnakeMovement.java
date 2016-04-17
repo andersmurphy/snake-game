@@ -25,20 +25,20 @@ public final class SnakeMovement implements Movement {
 		movement.put(Input.Keys.LEFT, leftMovementFunction());
 	}
 
-	private Function<Point, Point> leftMovementFunction() {
-		return point -> point.x <= 0 ? new Point(graphics.getWidth(), point.y) : new Point(point.x - SNAKE_MOVEMENT_UNIT, point.y);
-	}
-
-	private Function<Point, Point> rightMovementFunction() {
-		return point -> point.x >= graphics.getWidth() ? new Point(0, point.y) : new Point(point.x + SNAKE_MOVEMENT_UNIT, point.y);
+	private Function<Point, Point> upMovementFunction() {
+		return point -> point.y >= graphics.getHeight() ? new Point(point.x, 0) : new Point(point.x, point.y + SNAKE_MOVEMENT_UNIT);
 	}
 
 	private Function<Point, Point> downMovementFunction() {
 		return point -> point.y <= 0 ? new Point(point.x, graphics.getHeight()) : new Point(point.x, point.y - SNAKE_MOVEMENT_UNIT);
 	}
 
-	private Function<Point, Point> upMovementFunction() {
-		return point -> point.y >= graphics.getHeight() ? new Point(point.x, 0) : new Point(point.x, point.y + SNAKE_MOVEMENT_UNIT);
+	private Function<Point, Point> rightMovementFunction() {
+		return point -> point.x >= graphics.getWidth() ? new Point(0, point.y) : new Point(point.x + SNAKE_MOVEMENT_UNIT, point.y);
+	}
+
+	private Function<Point, Point> leftMovementFunction() {
+		return point -> point.x <= 0 ? new Point(graphics.getWidth(), point.y) : new Point(point.x - SNAKE_MOVEMENT_UNIT, point.y);
 	}
 
 	@Override
