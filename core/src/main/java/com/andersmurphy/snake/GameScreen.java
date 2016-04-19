@@ -7,21 +7,29 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.awt.Point;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 /**
  * Created by anders on 14/04/2016.
  */
 public final class GameScreen extends ScreenAdapter {
-	private static final float MOVE_TIME = 0.5F;
+	private static final float MOVE_TIME = 0.2F;
 	private static final int GRID_CELL = 32;
+	private static final String GAME_OVER_TEXT = "Game Over... Press space to Restart!";
 	private Movement snakeMovement;
 	private Point snakePosition = new Point(0, 0);
 	private LinkedList<Integer> snakeDirection = new LinkedList<>();
@@ -35,6 +43,16 @@ public final class GameScreen extends ScreenAdapter {
 	private Array<BodyPart> bodyParts = new Array<BodyPart>();
 	private ShapeRenderer shapeRenderer;
 	private boolean hasHit = false;
+	private BitmapFont bitmapFont;
+	private GlyphLayout layout = new GlyphLayout();
+
+	private enum STATE {
+		PLAYING, GAME_OVER
+	}
+
+	private STATE state = STATE.PLAYING;
+
+	private final Map<STATE, Consumer<Float>> gameStates = new HashMap<>();
 
 	@Override
 	public void show() {
@@ -46,29 +64,41 @@ public final class GameScreen extends ScreenAdapter {
 		snakeDirection.add(Input.Keys.RIGHT);
 		snakeDirection.add(Input.Keys.RIGHT);
 		this.snakeMovement = new SnakeMovement(Gdx.graphics);
+
+		gameStates.put(STATE.PLAYING, delta -> playing(delta));
+		gameStates.put(STATE.GAME_OVER, delta -> gameOver(delta));
+
+		bitmapFont = new BitmapFont();
+
 	}
 
 	@Override
 	public void render(float delta) {
-		queryInput();
-		updateSnake(delta);
-		checkAppleCollision();
-		checkAndPlaceApple();
+		gameStates.get(state).accept(delta);
 		clearScreen();
 		draw();
 
 	}
 
+	private void playing(float delta) {
+		queryInput();
+		updateSnake(delta);
+		checkAppleCollision();
+		checkAndPlaceApple();
+	}
+
+	private void gameOver(Float delta) {
+		checkForRestart();
+	}
+
 	private void updateSnake(float delta) {
-		if (!hasHit) {
-			timer -= delta;
-			if (timer <= 0) {
-				timer = MOVE_TIME;
-				Point snakesOldPosition = snakePosition;
-				snakePosition = snakeMovement.getMovementFunctionFor(snakeDirection).apply(snakePosition);
-				updateBodyPartsPosition(snakesOldPosition);
-				checkSnakeBodyCollision();
-			}
+		timer -= delta;
+		if (timer <= 0) {
+			timer = MOVE_TIME;
+			Point snakesOldPosition = snakePosition;
+			snakePosition = snakeMovement.getMovementFunctionFor(snakeDirection).apply(snakePosition);
+			updateBodyPartsPosition(snakesOldPosition);
+			checkSnakeBodyCollision();
 		}
 	}
 
@@ -89,6 +119,11 @@ public final class GameScreen extends ScreenAdapter {
 
 		if (isAppleAvailable) {
 			batch.draw(apple, applePosition.x, applePosition.y);
+		}
+
+		if (state == STATE.GAME_OVER) {
+			layout.setText(bitmapFont, GAME_OVER_TEXT);
+			bitmapFont.draw(batch, GAME_OVER_TEXT, (Gdx.graphics.getWidth() - layout.width) / 2, (Gdx.graphics.getHeight() - layout.height) / 2);
 		}
 		batch.end();
 	}
@@ -134,9 +169,20 @@ public final class GameScreen extends ScreenAdapter {
 	private void checkSnakeBodyCollision() {
 		for (BodyPart bodyPart : bodyParts) {
 			if (bodyPart.bodyPartPosition.equals(snakePosition)) {
-				hasHit = true;
+				state = STATE.GAME_OVER;
 			}
 		}
+	}
+
+	private void checkForRestart() {
+		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) doRestart();
+	}
+
+	private void doRestart() {
+		state = STATE.PLAYING;
+		bodyParts.clear();
+		timer = MOVE_TIME;
+		isAppleAvailable = false;
 	}
 }
 
