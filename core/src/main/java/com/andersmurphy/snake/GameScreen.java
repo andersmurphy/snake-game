@@ -3,19 +3,17 @@ package com.andersmurphy.snake;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 
-import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import java.awt.Point;
+import java.util.LinkedList;
 import java.util.stream.StreamSupport;
 
 /**
@@ -24,9 +22,9 @@ import java.util.stream.StreamSupport;
 public final class GameScreen extends ScreenAdapter {
 	private static final float MOVE_TIME = 0.5F;
 	private static final int GRID_CELL = 32;
-	private  Movement snakeMovement;
+	private Movement snakeMovement;
 	private Point snakePosition = new Point(0, 0);
-	private int snakeDirection = Input.Keys.RIGHT;
+	private LinkedList<Integer> snakeDirection = new LinkedList<>();
 	private float timer = MOVE_TIME;
 	private Batch batch;
 	private Texture snakeHead;
@@ -45,6 +43,8 @@ public final class GameScreen extends ScreenAdapter {
 		snakeBody = new Texture(Gdx.files.internal("snakebody.png"));
 		apple = new Texture(Gdx.files.internal("apple.png"));
 		shapeRenderer = new ShapeRenderer();
+		snakeDirection.add(Input.Keys.RIGHT);
+		snakeDirection.add(Input.Keys.RIGHT);
 		this.snakeMovement = new SnakeMovement(Gdx.graphics);
 	}
 
@@ -105,15 +105,18 @@ public final class GameScreen extends ScreenAdapter {
 	}
 
 	private void queryInput() {
-		boolean lPressed = Gdx.input.isKeyPressed(Input.Keys.LEFT);
-		boolean rPressed = Gdx.input.isKeyPressed(Input.Keys.RIGHT);
-		boolean uPressed = Gdx.input.isKeyPressed(Input.Keys.UP);
-		boolean dPressed = Gdx.input.isKeyPressed(Input.Keys.DOWN);
+		if (Gdx.input.isKeyPressed(Input.Keys.LEFT) && !snakeDirection.getLast().equals(Input.Keys.LEFT))
+			snakeDirection.add(Input.Keys.LEFT);
+		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) && !snakeDirection.getLast().equals(Input.Keys.RIGHT))
+			snakeDirection.add(Input.Keys.RIGHT);
+		if (Gdx.input.isKeyPressed(Input.Keys.UP) && !snakeDirection.getLast().equals(Input.Keys.UP))
+			snakeDirection.add(Input.Keys.UP);
+		if (Gdx.input.isKeyPressed(Input.Keys.DOWN) && !snakeDirection.getLast().equals(Input.Keys.DOWN))
+			snakeDirection.add(Input.Keys.DOWN);
 
-		if (lPressed) snakeDirection = Input.Keys.LEFT;
-		if (rPressed) snakeDirection = Input.Keys.RIGHT;
-		if (uPressed) snakeDirection = Input.Keys.UP;
-		if (dPressed) snakeDirection = Input.Keys.DOWN;
+		while (snakeDirection.size() > 2 && bodyParts.size > 0) {
+			snakeDirection.removeFirst();
+		}
 	}
 
 	private void drawGrid() {
