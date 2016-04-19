@@ -34,7 +34,7 @@ public final class GameScreen extends ScreenAdapter {
 	private Point applePosition = new Point(0, 0);
 	private Array<BodyPart> bodyParts = new Array<BodyPart>();
 	private ShapeRenderer shapeRenderer;
-
+	private boolean hasHit = false;
 
 	@Override
 	public void show() {
@@ -51,20 +51,32 @@ public final class GameScreen extends ScreenAdapter {
 	@Override
 	public void render(float delta) {
 		queryInput();
-		timer -= delta;
-		if (timer <= 0) {
-			timer = MOVE_TIME;
-			Point snakesOldPosition = snakePosition;
-			snakePosition = snakeMovement.getMovementFunctionFor(snakeDirection).apply(snakePosition);
-			updateBodyPartsPosition(snakesOldPosition);
-			if (isAppleAvailable && snakePosition.equals(applePosition)) {
-				bodyParts.insert(0, new BodyPart(snakeBody, snakePosition));
-				isAppleAvailable = false;
-			}
-		}
+		updateSnake(delta);
+		checkAppleCollision();
 		checkAndPlaceApple();
 		clearScreen();
 		draw();
+
+	}
+
+	private void updateSnake(float delta) {
+		if (!hasHit) {
+			timer -= delta;
+			if (timer <= 0) {
+				timer = MOVE_TIME;
+				Point snakesOldPosition = snakePosition;
+				snakePosition = snakeMovement.getMovementFunctionFor(snakeDirection).apply(snakePosition);
+				updateBodyPartsPosition(snakesOldPosition);
+				checkSnakeBodyCollision();
+			}
+		}
+	}
+
+	private void checkAppleCollision() {
+		if (isAppleAvailable && snakePosition.equals(applePosition)) {
+			bodyParts.insert(0, new BodyPart(snakeBody, snakePosition));
+			isAppleAvailable = false;
+		}
 	}
 
 	private void draw() {
@@ -119,15 +131,12 @@ public final class GameScreen extends ScreenAdapter {
 		}
 	}
 
-	private void drawGrid() {
-		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-		for (int x = 0; x < Gdx.graphics.getWidth(); x += GRID_CELL) {
-			for (int y = 0; y < Gdx.graphics.getHeight(); y += GRID_CELL) {
-				shapeRenderer.rect(x, y, GRID_CELL, GRID_CELL);
+	private void checkSnakeBodyCollision() {
+		for (BodyPart bodyPart : bodyParts) {
+			if (bodyPart.bodyPartPosition.equals(snakePosition)) {
+				hasHit = true;
 			}
 		}
-		shapeRenderer.end();
 	}
-
 }
 
