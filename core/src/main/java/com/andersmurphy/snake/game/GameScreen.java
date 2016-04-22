@@ -32,11 +32,11 @@ public final class GameScreen extends ScreenAdapter {
 	private static final float MOVE_TIME = 0.2F;
 	private static final int GRID_CELL = 32;
 	private static final String GAME_OVER_TEXT = "Game Over... Press space to Restart!";
-	private static final float WORLD_WIDTH = 640;
-	private static final float WORLD_HEIGHT = 480;
 
-	@Inject
-	public Batch batch;
+	@Inject public Batch batch;
+	@Inject public BitmapFont bitmapFont;
+	@Inject public Viewport viewport;
+	@Inject public Camera camera;
 
 	private Movement snakeMovement;
 	private Point snakePosition = new Point(0, 0);
@@ -48,12 +48,8 @@ public final class GameScreen extends ScreenAdapter {
 	private boolean isAppleAvailable = false;
 	private Point applePosition = new Point(0, 0);
 	private Array<BodyPart> bodyParts = new Array<BodyPart>();
-	private ShapeRenderer shapeRenderer;
 	private boolean hasHit = false;
-	private BitmapFont bitmapFont;
 	private GlyphLayout layout = new GlyphLayout();
-	private Viewport viewport;
-	private Camera camera;
 
 	private enum STATE {
 		PLAYING, GAME_OVER
@@ -68,20 +64,12 @@ public final class GameScreen extends ScreenAdapter {
 		snakeHead = new Texture(Gdx.files.internal("snakehead.png"));
 		snakeBody = new Texture(Gdx.files.internal("snakebody.png"));
 		apple = new Texture(Gdx.files.internal("apple.png"));
-		shapeRenderer = new ShapeRenderer();
 		snakeDirection.add(Input.Keys.RIGHT);
 		snakeDirection.add(Input.Keys.RIGHT);
 		this.snakeMovement = new SnakeMovement(Gdx.graphics);
 
 		gameStates.put(STATE.PLAYING, delta -> playing(delta));
 		gameStates.put(STATE.GAME_OVER, delta -> gameOver(delta));
-
-		bitmapFont = new BitmapFont();
-
-		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		camera.position.set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 0);
-		camera.update();
-		viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
 	}
 
 	@Override
