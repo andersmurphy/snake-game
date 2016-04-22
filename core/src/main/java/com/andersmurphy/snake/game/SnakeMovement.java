@@ -1,20 +1,16 @@
-package com.andersmurphy.snake;
+package com.andersmurphy.snake.game;
 
-import com.badlogic.gdx.Gdx;
+import com.andersmurphy.snake.game.Movement;
 import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 

@@ -1,5 +1,3 @@
-apply plugin: "java"
-
 sourceCompatibility = 1.8
 
 project.ext.mainClassName = "com.andersmurphy.snake.desktop.DesktopLauncher"

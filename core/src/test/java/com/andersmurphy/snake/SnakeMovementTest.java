@@ -1,5 +1,6 @@
 package com.andersmurphy.snake;
 
+import com.andersmurphy.snake.game.SnakeMovement;
 import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Input;
 import org.junit.Test;

@@ -1,4 +1,4 @@
-package com.andersmurphy.snake;
+package com.andersmurphy.snake.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -11,19 +11,18 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import javax.inject.Inject;
 import java.awt.Point;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 /**
@@ -36,11 +35,13 @@ public final class GameScreen extends ScreenAdapter {
 	private static final float WORLD_WIDTH = 640;
 	private static final float WORLD_HEIGHT = 480;
 
+	@Inject
+	public Batch batch;
+
 	private Movement snakeMovement;
 	private Point snakePosition = new Point(0, 0);
 	private LinkedList<Integer> snakeDirection = new LinkedList<>();
 	private float timer = MOVE_TIME;
-	private Batch batch;
 	private Texture snakeHead;
 	private Texture snakeBody;
 	private Texture apple;
@@ -64,7 +65,6 @@ public final class GameScreen extends ScreenAdapter {
 
 	@Override
 	public void show() {
-		batch = new SpriteBatch();
 		snakeHead = new Texture(Gdx.files.internal("snakehead.png"));
 		snakeBody = new Texture(Gdx.files.internal("snakebody.png"));
 		apple = new Texture(Gdx.files.internal("apple.png"));

@@ -1,4 +1,4 @@
-package com.andersmurphy.snake;
+package com.andersmurphy.snake.game;
 
 import java.awt.Point;
 import java.util.LinkedList;
